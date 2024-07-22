@@ -17,9 +17,9 @@ function setup()
     waterActive[i] = [];
     for(let j=0; j<rowLength; j++)
     {
-      heightMap[i][j] = noise(i/100,j/100)*255;///Perlin for heightMap for now
+      heightMap[i][j] = noise(i/100,j/100)*0;///Perlin for heightMap for now
       waterActive[i][j] = 0 ;
-      if(random(1)>0.50)
+      if(random(1)>0.90)
         {
           waterActive[i][j] = 255;
         }
@@ -45,7 +45,7 @@ function draw()
       for(let j=0; j<rowLength; j++)
       {
         stroke(heightMap[i][j],heightMap[i][j],0,255);
-        point(i,j);
+        //point(i,j);
         point(i+rowLength,j);//Needs to be changed when resolution not 1
 
         stroke(0,0,255,waterActive[i][j]);
@@ -55,15 +55,58 @@ function draw()
       }
     }
 
-  for(let p =0; p<10; p++)
-    {
-      waterTick();
-    }
+  waterTick();
   console.log(waterSum);
 }
 
 
+
+////This is an attempt at modeeling the diffusion, that takes cells with neighbours
+//loops thro neighbours, and then works out the difference between each cells water height
+//Then it checks to see if this movement of water will make a cell have negative water
+//if so, then apply a scale factor that forces that to zero rather than negative
 function waterTick()
+{
+
+  for (let i=1; i<rowLength-1; i++)///Loop through cells that have neighbours on all sides only
+    {
+      for(let j=1; j<rowLength-1; j++)
+      {
+        let transferVal = 0;//amount of water to be transported to cell 
+        for(let k=0; k<4; k++)
+          {
+            let theta = k*HALF_PI;
+            //let grabbedCellPos = createVector(i+sin(theta),j+cos(theta));
+            let heightDif = waterBuffer1[i+int(sin(theta))][j+int(cos(theta))]-waterBuffer1[i][j];
+            let deltaH = mu*heightDif;
+            ///I can check if that deltaH will send a cell negative, but after that I update the active map, not the buffer
+            ///So all the neighbours could take water from a cell, and then each individual take might not send a cell negative
+            ///But combined, they will, this could kinda be coutnered by the fact that once negative, no water will drain, so maybe lets 
+            ///test it
+            ///Ok, well it seems to force everything deeply negative which is unsuprising as some things get negative and then have 
+            ///nothing to give
+
+            ////Need a better way
+
+
+
+            // if(waterBuffer1[i][j]+deltaH<0)
+            //   {
+            //     deltaH = waterBuffer1[i][j];
+            //   }
+            // if(waterBuffer1[i+int(sin(theta))][j+int(cos(theta))]-deltaH<0)
+            //   {
+            //     deltaH = waterBuffer1[i+int(sin(theta))][j+int(cos(theta))];
+            //   }
+            waterActive[i][j] += deltaH;
+          }
+      }
+    }
+    waterBuffer1 = structuredClone(waterActive);
+}
+
+
+function waterTickOld()
 {
   //This function will be called every frame (tick), and handles the diffusion
   //Basic tenant is diffusion equation, which discretized looks like
@@ -79,23 +122,23 @@ function waterTick()
         let duDt = xDu+yDu;
         //Just adding the expected change in depth leads to unphysical negative values of depth,
         //waterActive[i][j] += duDt;
-        ///Going to try put the brakes on the diffusion - ie boundary condition forcing U>0
-        let newDepth = waterActive[i][j] + duDt;
-        if (newDepth<0)
-        {
-          newDepth *= 1/4;
-          waterActive[i+1][j] += newDepth;
-          waterActive[i-1][j] += newDepth;
-          waterActive[i][j+1] += newDepth;
-          waterActive[i][j-1] += newDepth;
+        ///MAYBE Going to try put the brakes on the diffusion - ie boundary condition forcing U>0
+        // let newDepth = waterActive[i][j] + duDt;
+        // if (newDepth<0)
+        // {
+        //   newDepth *= 1/4;
+        //   waterActive[i+1][j] += newDepth;
+        //   waterActive[i-1][j] += newDepth;
+        //   waterActive[i][j+1] += newDepth;
+        //   waterActive[i][j-1] += newDepth;
 
-          waterActive[i][j] = 0;//I think this unormalizes U, ie creates water out of nowhere,
-          //So take that much water away from neighbours
-        }
-        else
-        {
+        //   waterActive[i][j] = 0;//I think this unormalizes U, ie creates water out of nowhere,
+        //   //So take that much water away from neighbours
+        // }
+        // else
+        // {
           waterActive[i][j] += duDt;
-        }
+        //}
         
       }
     }
