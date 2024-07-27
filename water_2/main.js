@@ -68,41 +68,28 @@ function draw()
 function waterTick()
 {
 
-  for (let i=1; i<rowLength-1; i++)///Loop through cells that have neighbours on all sides only
-    {
-      for(let j=1; j<rowLength-1; j++)
-      {
-        let transferVal = 0;//amount of water to be transported to cell 
-        for(let k=0; k<4; k++)
-          {
-            let theta = k*HALF_PI;
-            //let grabbedCellPos = createVector(i+sin(theta),j+cos(theta));
-            let heightDif = waterBuffer1[i+int(sin(theta))][j+int(cos(theta))]-waterBuffer1[i][j];
-            let deltaH = mu*heightDif;
-            ///I can check if that deltaH will send a cell negative, but after that I update the active map, not the buffer
-            ///So all the neighbours could take water from a cell, and then each individual take might not send a cell negative
-            ///But combined, they will, this could kinda be coutnered by the fact that once negative, no water will drain, so maybe lets 
-            ///test it
-            ///Ok, well it seems to force everything deeply negative which is unsuprising as some things get negative and then have 
-            ///nothing to give
-
-            ////Need a better way
-
-
-
-            // if(waterBuffer1[i][j]+deltaH<0)
-            //   {
-            //     deltaH = waterBuffer1[i][j];
-            //   }
-            // if(waterBuffer1[i+int(sin(theta))][j+int(cos(theta))]-deltaH<0)
-            //   {
-            //     deltaH = waterBuffer1[i+int(sin(theta))][j+int(cos(theta))];
-            //   }
-            waterActive[i][j] += deltaH;
-          }
-      }
-    }
-    waterBuffer1 = structuredClone(waterActive);
+  // //Left-right pass
+  // for (let i=0; i<rowLength-1; i++)///Loop through cells that have neighbours on all sides only
+  //   {
+  //     for(let j=0; j<rowLength; j++)
+  //     {
+  //       ///Calculate hight difference with neighbour to right
+  //       let deltaH = mu*(waterBuffer1[i][j]-waterBuffer1[i+1][j]);
+  //       //deltaH is positive when water should move to the right
+  //       //Check if that much change will make the height go negative
+  //       if(waterBuffer1[i][j] - deltaH < 0)
+  //       {
+  //         deltaH = float(waterBuffer1[i][j]);
+  //       }
+  //       if(waterBuffer1[i+1][j] + deltaH < 0)
+  //       {
+  //         deltaH = float(waterBuffer1[i+1][j]);
+  //       }
+  //       waterBuffer1[i+1][j] += deltaH;
+  //       waterBuffer1[i][j] -= deltaH;
+  //     }
+  //   }
+  //   waterBuffer1 = structuredClone(waterActive);
 }
 
 
