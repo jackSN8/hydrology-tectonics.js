@@ -5,7 +5,7 @@ let waterBuffer2 = [];
 
 let resolution = 1;
 let rowLength = 400;
-let mu = 0.3;//viscosity of water
+let mu = 1;//viscosity of water
 
 function setup()
 {
@@ -17,9 +17,11 @@ function setup()
     waterActive[i] = [];
     for(let j=0; j<rowLength; j++)
     {
-      heightMap[i][j] = noise(i/100,j/100)*0;///Perlin for heightMap for now
-      waterActive[i][j] = 0 ;
-      if(random(1)>0.90)
+      //heightMap[i][j] = noise(i/100,j/100)*255;///Perlin for heeightmap
+      heightMap[i][j] = 0*((j-rowLength/2)/50)**2;
+      //console.log(heightMap[i][j]);
+      waterActive[i][j] = 0;
+      if(random(1)>0.70)
         {
           waterActive[i][j] = 255;
         }
@@ -45,19 +47,43 @@ function draw()
       for(let j=0; j<rowLength; j++)
       {
         stroke(heightMap[i][j],heightMap[i][j],0,255);
-        //point(i,j);
+        point(i,j);
         point(i+rowLength,j);//Needs to be changed when resolution not 1
 
         stroke(0,0,255,waterActive[i][j]);
         waterSum += waterActive[i][j];
         point(i,j);
+        stroke(0,0,waterActive[i][j],255);
         point(i+rowLength*2,j);
       }
     }
 
   waterTick();
-  console.log(waterSum);
+  //console.log(waterSum);
 }
+
+
+function waterTick()
+{
+
+}
+
+function Diffuse1D(direction)//0lr,1ud,2rl,3du
+{
+  let startX;
+  let endX;
+  if(direction == 0 || direction == 1)
+  {
+    startX = 0;
+    endX = rowLength;
+  }
+  else if (direction == 2 || direction == 3)
+  {
+    endX = 0;
+    startX = rowLength;
+  }
+}
+
 
 
 
@@ -65,31 +91,64 @@ function draw()
 //loops thro neighbours, and then works out the difference between each cells water height
 //Then it checks to see if this movement of water will make a cell have negative water
 //if so, then apply a scale factor that forces that to zero rather than negative
-function waterTick()
+function waterTickOld2()
 {
+  console.log(waterBuffer1[110][210]);
+  console.log(waterBuffer1[111][210]);
 
-  // //Left-right pass
-  // for (let i=0; i<rowLength-1; i++)///Loop through cells that have neighbours on all sides only
-  //   {
-  //     for(let j=0; j<rowLength; j++)
-  //     {
-  //       ///Calculate hight difference with neighbour to right
-  //       let deltaH = mu*(waterBuffer1[i][j]-waterBuffer1[i+1][j]);
-  //       //deltaH is positive when water should move to the right
-  //       //Check if that much change will make the height go negative
-  //       if(waterBuffer1[i][j] - deltaH < 0)
-  //       {
-  //         deltaH = float(waterBuffer1[i][j]);
-  //       }
-  //       if(waterBuffer1[i+1][j] + deltaH < 0)
-  //       {
-  //         deltaH = float(waterBuffer1[i+1][j]);
-  //       }
-  //       waterBuffer1[i+1][j] += deltaH;
-  //       waterBuffer1[i][j] -= deltaH;
-  //     }
-  //   }
-  //   waterBuffer1 = structuredClone(waterActive);
+  ////Surely can combine these at some point?
+  //Left-right pass
+  for (let i=0; i<rowLength-1; i++)///Loop through cells that have neighbours on all sides only
+    {
+      for(let j=0; j<rowLength; j++)
+      {
+        ///Calculate hight difference with neighbour to right
+        let deltaH = mu*(waterBuffer1[i][j]+heightMap[i][j]-waterBuffer1[i+1][j]-heightMap[i+1][j]);
+        //deltaH is positive when water should move to the right
+        //Check if that much change will make the height go negative
+        if(waterBuffer1[i][j] - deltaH < 0)
+        {
+          deltaH = waterBuffer1[i][j];
+          
+        }
+        //Check if the water movement is negative, will giving that much negative water make the next cell negative
+        if(waterBuffer1[i+1][j] + deltaH < 0)
+        {
+          //Check to see forcing that previous cell to zero will make the other cell go negative
+          if(deltaH>waterBuffer1[i+1][j])
+          {
+            deltaH = waterBuffer1[i+1][j];
+          }
+        }
+        waterActive[i+1][j] += deltaH;
+        waterActive[i][j] -= deltaH;
+      }
+    }
+  waterBuffer1 = structuredClone(waterActive);
+  //Up-down pass
+  for (let j=0; j<rowLength-1; j++)///Loop through cells that have neighbours on all sides only
+    {
+      for(let i=0; i<rowLength; i++)
+      {
+        ///Calculate hight difference with neighbour below
+        let deltaH = mu*(waterBuffer1[i][j]+heightMap[i][j]-waterBuffer1[i][j+1]-heightMap[i][j+1]);
+        //deltaH is positive when water should move down
+        //Check if that much change will make the height go negative
+        if(waterBuffer1[i][j] - deltaH < 0)
+        {
+          deltaH = waterBuffer1[i][j];
+        }
+        if(waterBuffer1[i][j+1] + deltaH < 0)
+        {
+          deltaH = waterBuffer1[i][j+1];
+        }
+        waterActive[i][j+1] += deltaH;
+        waterActive[i][j] -= deltaH;
+      }
+    }
+    waterBuffer1 = structuredClone(waterActive);  
+
+
 }
 
 
