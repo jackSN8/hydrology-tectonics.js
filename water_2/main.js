@@ -5,7 +5,8 @@ let waterBuffer2 = [];
 
 let resolution = 1;
 let rowLength = 400;
-let mu = 1;//viscosity of water
+let mu = 0.1;//viscosity of water
+let t = 0;
 
 function setup()
 {
@@ -36,10 +37,13 @@ function setup()
 
 function draw()
 {
+  t++;
   let waterSum = 0;
   background(127);
   let fps = getTargetFrameRate();
   fill(255);
+  stroke(255);
+
   text(fps,20,20);
   //Draw combined height-water map, then heightmap, then water map
   for (let i=0; i<rowLength; i++)
@@ -59,7 +63,12 @@ function draw()
     }
 
   waterTick();
-  //console.log(waterSum);
+  console.log(waterSum);
+  fill(255);
+  stroke(255);
+  
+  text(fps,20,20);
+  text(t,20,50);
 }
 
 
@@ -80,24 +89,43 @@ function Diffuse1D(direction)//0lr,1ud,2rl,3du
   if(direction<2)
   {
     startX = 0;
-    endX = rowLength;
+    //endX = rowLength;
     let shiftX = 1-direction;
     let shiftY = int(direction);
     ///loop from the starting side and shift all water by expected amount
-    for(let i=startX; i++; i<endX)
+    //console.log("yea");
+    for(let i=0; i<rowLength-1; i++)
     {
-      for(let j=startX; j++; j<endX)
+      for(let j=0; j<rowLength-1; j++)
       {
         let deltaH;
-        //Check delta based on direction
-        if(direction == 0)
-        {
-          deltaH = mu*(waterBuffer1[i+shiftX][j+shiftY] - waterBuffer1[i][j]);
-          deltaH = floorOfThree(waterBuffer1[i][j],waterBuffer1[i+shiftX][j+shiftY],abs(deltaH));
-        }
+        // let dumbX = int(i);
+        // let dumbY = int(j);
+        // console.log("gr");
+        // console.log(waterBuffer1[i][j]);
+        // console.log(waterBuffer1[i+shiftX][j+shiftY]);
+        // console.log(abs(deltaH));
+
+
+
+      //  console.log(i+shiftX);
+
+      //  let b = waterBuffer1[i][j+shiftY]
+      //  let a = waterBuffer1[i+shiftX][j];
+
+        deltaH = mu*(waterBuffer1[i+shiftX][j+shiftY] - waterBuffer1[i][j]);
+        console.log("new");
+        console.log(deltaH);
+        console.log(abs(deltaH));
+        deltaH = (abs(deltaH)/deltaH)*floorOfThree(waterBuffer1[i][j],waterBuffer1[i+shiftX][j+shiftY],abs(deltaH));
+        console.log(deltaH);
         //Shift the water
+        
+
         waterActive[i+shiftX][j+shiftY] -=deltaH;
         waterActive[i][j] += deltaH;
+        // i=int(dumbX);
+        // j=int(dumbY);
       }
     }
     //End sweep through by updating waterMap
@@ -112,22 +140,31 @@ function Diffuse1D(direction)//0lr,1ud,2rl,3du
     startX = rowLength;
     ydirec = int(direction)-2;
     let shiftX = -(1-ydirec);//-1 if direction = 2, 0 if direction = 3
-    let shiftY = int(ydirec);
+    let shiftY = -int(ydirec);
     ///loop from the starting side and shift all water by expected amount
-    for(let i=startX; i--; i<endX)
+    for(let i=startX-1; i>1; i--)
     {
-      for(let j=startX; j--; j<endX)
+      for(let j=startX-1; j>1; j--)
       {
         let deltaH;
+
+
         //Check delta based on direction
-        if(direction == 0)
-        {
-          deltaH = mu*(waterBuffer1[i+shiftX][j+shiftY] - waterBuffer1[i][j]);
-          deltaH = floorOfThree(waterBuffer1[i][j],waterBuffer1[i+shiftX][j+shiftY],abs(deltaH));
-        }
+
+        ///NO fucking idea why sometimes i<1
+        // console.log("newset");
+        // console.log(i);
+        // console.log(shiftX);
+        // console.log(i+shiftX);
+        // let b = waterBuffer1[i][j+shiftY]
+        // let a = waterBuffer1[i+shiftX][j];
+        deltaH = mu*(waterBuffer1[i+shiftX][j+shiftY] - waterBuffer1[i][j]);
+        deltaH = (abs(deltaH)/deltaH)*floorOfThree(waterBuffer1[i][j],waterBuffer1[i+shiftX][j+shiftY],abs(deltaH));
         //Shift the water
+
         waterActive[i+shiftX][j+shiftY] -=deltaH;
         waterActive[i][j] += deltaH;
+
       }
     }
     //End sweep through by updating waterMap
@@ -138,11 +175,11 @@ function Diffuse1D(direction)//0lr,1ud,2rl,3du
 //returns lowest of three inputs
 function floorOfThree(inp1, inp2, inp3)
 {
-  if(inp1<inp2 && inp1<inp3)
+  if(inp1<=inp2 && inp1<=inp3)
   {
     return inp1;
   }
-  if(inp2<inp3)
+  if(inp2<=inp3)
   {
     return inp2;
   }
