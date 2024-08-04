@@ -65,26 +65,90 @@ function draw()
 
 function waterTick()
 {
-
+  //Loop through directions, and then diffuse in those directions
+  for(let d=0; d<4; d++)
+  {
+    Diffuse1D(d);
+  }
 }
 
+///Function that diffuses water in 1 direction
 function Diffuse1D(direction)//0lr,1ud,2rl,3du
 {
   let startX;
   let endX;
-  if(direction == 0 || direction == 1)
+  if(direction<2)
   {
     startX = 0;
     endX = rowLength;
+    let shiftX = 1-direction;
+    let shiftY = int(direction);
+    ///loop from the starting side and shift all water by expected amount
+    for(let i=startX; i++; i<endX)
+    {
+      for(let j=startX; j++; j<endX)
+      {
+        let deltaH;
+        //Check delta based on direction
+        if(direction == 0)
+        {
+          deltaH = mu*(waterBuffer1[i+shiftX][j+shiftY] - waterBuffer1[i][j]);
+          deltaH = floorOfThree(waterBuffer1[i][j],waterBuffer1[i+shiftX][j+shiftY],abs(deltaH));
+        }
+        //Shift the water
+        waterActive[i+shiftX][j+shiftY] -=deltaH;
+        waterActive[i][j] += deltaH;
+      }
+    }
+    //End sweep through by updating waterMap
+    waterBuffer1 = structuredClone(waterActive);
   }
-  else if (direction == 2 || direction == 3)
+
+  ////Can totally merge this set of code in with previous one but tbd
+  ///Just need to fix for loops i think as that requires inverting sign
+  else if (direction >=2)
   {
     endX = 0;
     startX = rowLength;
+    ydirec = int(direction)-2;
+    let shiftX = -(1-ydirec);//-1 if direction = 2, 0 if direction = 3
+    let shiftY = int(ydirec);
+    ///loop from the starting side and shift all water by expected amount
+    for(let i=startX; i--; i<endX)
+    {
+      for(let j=startX; j--; j<endX)
+      {
+        let deltaH;
+        //Check delta based on direction
+        if(direction == 0)
+        {
+          deltaH = mu*(waterBuffer1[i+shiftX][j+shiftY] - waterBuffer1[i][j]);
+          deltaH = floorOfThree(waterBuffer1[i][j],waterBuffer1[i+shiftX][j+shiftY],abs(deltaH));
+        }
+        //Shift the water
+        waterActive[i+shiftX][j+shiftY] -=deltaH;
+        waterActive[i][j] += deltaH;
+      }
+    }
+    //End sweep through by updating waterMap
+    waterBuffer1 = structuredClone(waterActive);
   }
 }
 
+//returns lowest of three inputs
+function floorOfThree(inp1, inp2, inp3)
+{
+  if(inp1<inp2 && inp1<inp3)
+  {
+    return inp1;
+  }
+  if(inp2<inp3)
+  {
+    return inp2;
+  }
+  return inp3;
 
+}
 
 
 ////This is an attempt at modeeling the diffusion, that takes cells with neighbours
