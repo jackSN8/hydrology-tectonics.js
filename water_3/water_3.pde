@@ -5,23 +5,26 @@ import java.util.Arrays;
 float [][] hM;//heightMap
 float [][] wB;//waterBuffer
 float [][] wM;//waterMap
-int wSize = 250;
+int wSize = 500;
 float noiseScale = 0.1;
 float viscous = 1;
 
 
 void setup()
 {
-  size(750,250);
+  size(1000,500);
   hM = new float[wSize][wSize];
   wM = new float[wSize][wSize];
   wB = new float[wSize][wSize];
   setupTextures();
   wB = Arrays.copyOf(wM, wM.length);//troll?
+  print("Water before physics is: ");
+  sumOfWater();
   for(int p = 0; p<100; p++)
   {
     physicsTick();
   }
+  print("Water after physics is: ");
   sumOfWater();
 }
 
@@ -31,7 +34,6 @@ void physicsTick()
 
   shiftWater(0);
   shiftWater(2*PI);
-  wM = Arrays.copyOf(wB, wB.length);//troll?
   shiftWater(1*PI);
   shiftWater(3*PI);
   wM = Arrays.copyOf(wB, wB.length);
@@ -65,13 +67,17 @@ void shiftWater(float direction)
   {  
     for(int j=1; j<wSize-1; j++)
     {
-      float dH = wM[i][j] - wM[i+xShift][j+yShift];
+      float dH = wM[i][j]+hM[i][j] - wM[i+xShift][j+yShift]-hM[i+xShift][j+yShift];
       float dW = viscous*dH;   
       
       ///sorry about this - but need to make sure boundary condition of each water cell having >= 0 is fixed,
       //this forces the amount of water drained from a cell to be less than the cell or the neighbour it is draining to
       float[] jeff = {dW,wM[i][j],wM[i+xShift][j+yShift]};
       dW = lowestOf(jeff);
+      if(dW>0)
+      {
+         //println(dW);
+      }
       wB[i+xShift][j+yShift] += dW;    
     }
   }
@@ -99,6 +105,16 @@ void sumOfWater()
   {  
     for(int j=0; j<wSize; j++)
     {
+      if(Float.isNaN(wM[i][j]))
+      //float t1 = 3.0;
+      //Float t2 = t1;
+      //if(t2 != null);
+      {
+        print("big problems at x ");
+        println(i);
+        print("y ");
+        println(j);
+      }
       sum += wM[i][j];
     }
   }
