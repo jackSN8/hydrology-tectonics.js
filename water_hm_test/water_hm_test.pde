@@ -170,7 +170,10 @@ void setupTextures()
     for(int j=0; j<hght; j++)
     {
       hM[i][j] = 120*noise(i*noiseScale,j*noiseScale);
-      wM[i][j] = waterStart;
+      if(hM[i][j]<40)
+      {
+         wM[i][j] = waterStart;
+      }
     }
   }
 }
