@@ -10,7 +10,7 @@ int wdth = 800;
 int hght = 500;
 float noiseScale = 0.01;
 float viscous = 0.01;
-float waterStart = 8;
+float waterStart = 5;
 PImage img; // To store the input image
 
 
@@ -39,11 +39,12 @@ void setup()
 void physicsTick()
 {
   {
-    shiftWater(1*PI);
-    shiftWater(3*PI);
+    //
+    shiftWater(0.5*PI);
+    shiftWater(1.5*PI);
     wM = Arrays.copyOf(wB, wB.length);
     shiftWater(0);
-    shiftWater(2*PI);
+    shiftWater(1*PI);
     wM = Arrays.copyOf(wB, wB.length);   
 
   }
@@ -79,7 +80,7 @@ void shiftWater(float direction)
   ////loop starting UD then clockwise (starting clockwise) 
   int xShift = int(sin(direction));
   int yShift = int(cos(direction));//1,0,-1,0  
-  if(random(1)>0.5)
+  if(random(1)>0)
   {
     for(int i=1; i<wdth-1; i++)
     {  
@@ -100,27 +101,27 @@ void shiftWater(float direction)
       }
     }
   }
-  else
-  {
-    for(int j=1; j<hght-1; j++)
-    {  
-      for(int i=1; i<wdth-1; i++)
-      {
-        float dH = wM[i][j]+hM[i][j] - wM[i+xShift][j+yShift]-hM[i+xShift][j+yShift];
-        float dW = viscous*dH;   
+  //else
+  //{
+  //  for(int j=1; j<hght-1; j++)
+  //  {  
+  //    for(int i=1; i<wdth-1; i++)
+  //    {
+  //      float dH = wM[i][j]+hM[i][j] - wM[i+xShift][j+yShift]-hM[i+xShift][j+yShift];
+  //      float dW = viscous*dH;   
         
-        ///sorry about this - but need to make sure boundary condition of each water cell having >= 0 is fixed,
-        //this forces the amount of water drained from a cell to be less than the cell or the neighbour it is draining to
-        float[] jeff = {dW,wM[i][j],wM[i+xShift][j+yShift]};
-        dW = lowestOf(jeff);
-        if(dW>0)
-        {
-           //println(dW);
-        }
-        wB[i][j] -= dW;    
-      }
-    }
-  }
+  //      ///sorry about this - but need to make sure boundary condition of each water cell having >= 0 is fixed,
+  //      //this forces the amount of water drained from a cell to be less than the cell or the neighbour it is draining to
+  //      float[] jeff = {dW,wM[i][j],wM[i+xShift][j+yShift]};
+  //      dW = lowestOf(jeff);
+  //      if(dW>0)
+  //      {
+  //         //println(dW);
+  //      }
+  //      wB[i][j] -= dW;    
+  //    }
+  //  }
+  //}
   
 
 }
@@ -170,10 +171,7 @@ void setupTextures()
     for(int j=0; j<hght; j++)
     {
       hM[i][j] = 120*noise(i*noiseScale,j*noiseScale);
-      if(hM[i][j]<40)
-      {
-         wM[i][j] = waterStart;
-      }
+      wM[i][j] = waterStart;
     }
   }
 }
